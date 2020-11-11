@@ -38,6 +38,8 @@ namespace PhysicalCache
         
         public void Add(CacheItem item)
         {
+            if (Contains(item.Key)) return;
+
             if (item.RawBytes != null)
             {
                 File.WriteAllBytes($"{Constants.CacheFolderName}/{item.Key}", item.RawBytes);
@@ -65,14 +67,21 @@ namespace PhysicalCache
 
         public bool Contains(string key)
         {
-            return true;
-        }
+            if (key == null) throw new ArgumentException(nameof(key));
+            
+            foreach (var file in CacheDirectoryInfo.GetFiles())
+            {
+                if (file.Name == key)
+                {
+                    return true;
+                }
+            }
 
-        public bool Contains(CacheItem item)
-        {
             return false;
         }
-        
+
+        public bool Contains(CacheItem item) => Contains(item.Key);
+
         public void Dispose()
         {
             FolderUtils.EmptyFolder(CacheDirectoryInfo);
