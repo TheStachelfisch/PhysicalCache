@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using PhysicalCache;
+using PhysicalCache.Items;
 
 namespace Tests
 {
@@ -7,9 +9,9 @@ namespace Tests
     {
         static void Main(string[] args)
         {
-            var cache = new PhysicalCache.PhysicalCache(clearOnStartUp:false);
+            var cache = new PhysicalCache.PhysicalCache();
 
-            Console.WriteLine(cache.Get("client")?.File.FullName);
+            //cache.Add(new CacheItem("client"));
         }
     }
 }

@@ -8,53 +8,55 @@ namespace PhysicalCache
 {
     public class PhysicalCache : IDisposable
     {
-        private static bool _ClearOnStartUp;
-        private static bool _IsFolderHidden;
-
-        internal List<CacheItem> _cacheItems;
+        internal List<ICacheItem> _cacheItems;
 
         public DirectoryInfo CacheDirectoryInfo { get; private set; }
 
-        public PhysicalCache(bool isFolderHidden = true, bool clearOnStartUp = true)
-        {
-            _IsFolderHidden = isFolderHidden;
-            _ClearOnStartUp = clearOnStartUp;
+        public PhysicalCache() => SetupCache();
 
-            SetupCache();
-        }
 
         private void SetupCache()
         {
             // Can't use this.CacheDirectoryInfo yet, since it's not initialized yet
             if (!Directory.Exists(Constants.CacheFolderName))
                 FolderUtils.CreateHiddenFolder(Constants.CacheFolderName);
-            else if (Directory.Exists(Constants.CacheFolderName) && _ClearOnStartUp)
+            else
                 FolderUtils.EmptyFolder(new DirectoryInfo(Constants.CacheFolderName));
 
             CacheDirectoryInfo = new DirectoryInfo(Constants.CacheFolderName);
         }
 
-        public void Add(CacheItem item)
+        public FileInfo AddAndGet(CacheItem item, bool moveItem = true)
         {
-            if (Contains(item.Key)) return;
+            if (Contains(item.Key))
+                foreach (var file in CacheDirectoryInfo.GetFiles())
+                    if (file.Name == item.Key)
+                        return new FileInfo(file.FullName);
 
             if (item.RawBytes != null)
             {
                 File.WriteAllBytes($"{Constants.CacheFolderName}/{item.Key}", item.RawBytes);
                 _cacheItems.Add(item);
-                return;
+                return new FileInfo($"{Constants.CacheFolderName}/{item.Key}");
             }
 
-            item.File?.MoveTo($"{Constants.CacheFolderName}/{item.Key}");
+            if (moveItem)
+                item.File?.MoveTo($"{Constants.CacheFolderName}/{item.Key}");
+            else
+                item.File.CopyTo($"{Constants.CacheFolderName}/{item.Key}");
+
+            return new FileInfo($"{Constants.CacheFolderName}/{item.Key}");
         }
 
-        public CacheItem Get(string key)
+        public void Add(CacheItem item, bool moveItem = true) => AddAndGet(item, moveItem);
+
+        public FileInfo Get(string key)
         {
             if (key == null) throw new ArgumentException(nameof(key));
 
             foreach (var file in CacheDirectoryInfo.GetFiles())
                 if (file.Name == key)
-                    return new CacheItem(key, file);
+                    return new FileInfo(file.FullName);
 
             return null;
         }
@@ -70,10 +72,7 @@ namespace PhysicalCache
             return false;
         }
 
-        public bool Contains(CacheItem item)
-        {
-            return Contains(item.Key);
-        }
+        public bool Contains(CacheItem item) => Contains(item.Key);
 
         public void Dispose()
         {
