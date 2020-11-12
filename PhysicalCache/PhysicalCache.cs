@@ -37,19 +37,21 @@ namespace PhysicalCache
                     if (file.Name == item.Key)
                         return new FileInfo(file.FullName);
 
+            string directory = GenerateDirectory(item);
+            
             if (item.RawBytes != null)
             {
-                File.WriteAllBytes($"{Constants.CacheFolderName}/{item.Key}", item.RawBytes);
+                File.WriteAllBytes(directory, item.RawBytes);
                 _cacheItems.Add(item);
-                return new FileInfo($"{Constants.CacheFolderName}/{item.Key}");
+                return new FileInfo(directory);
             }
 
             if (moveItem)
-                item.File?.MoveTo($"{Constants.CacheFolderName}/{item.Key}");
+                item.File?.MoveTo(directory);
             else
-                item.File.CopyTo($"{Constants.CacheFolderName}/{item.Key}");
+                item.File.CopyTo(directory);
 
-            return new FileInfo($"{Constants.CacheFolderName}/{item.Key}");
+            return new FileInfo(directory);
         }
 
         public void Add(CacheItem item, bool moveItem = true) => AddAndGet(item, moveItem);

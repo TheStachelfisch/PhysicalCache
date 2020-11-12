@@ -11,7 +11,7 @@ namespace Tests
         {
             var cache = new PhysicalCache.PhysicalCache();
 
-            //cache.Add(new CacheItem("client"));
+            Console.WriteLine(((DateTimeOffset)cache.Get("client")?.CreationTimeUtc).ToUnixTimeMilliseconds());
         }
     }
 }
