@@ -26,6 +26,10 @@ namespace PhysicalCache
             CacheDirectoryInfo = new DirectoryInfo(Constants.CacheFolderName);
         }
 
+        internal string GenerateDirectory(string key) => $"{Constants.CacheFolderName}/{key}";
+
+        internal string GenerateDirectory(CacheItem item) => GenerateDirectory(item.Key);
+
         public FileInfo AddAndGet(CacheItem item, bool moveItem = true)
         {
             if (Contains(item.Key))
